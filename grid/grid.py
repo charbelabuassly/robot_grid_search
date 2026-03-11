@@ -5,15 +5,14 @@ import random as random
 from collections import deque
 
 
-
 class Grid:
     #------------------------------------------------------ Static Variables
     obstacles = [0 , 2, 3 , 4]
     passable = [1,3] #obstacles which allow passage
-    # ----------------------------------------------------- Constructor & Getters
     #House Walls
     vertical_wall = [(1,16),(2,16),(3,16),(4,16)]
-    horizontal_wall = [(4,16),(4,17),(4,18)]        
+    horizontal_wall = [(4,16),(4,17),(4,18)]    
+    # ----------------------------------------------------- Constructor & Getters    
     def __init__(self):
         self.grid = np.ones((20,20))
         self.gridsize = (20,20)
@@ -30,12 +29,12 @@ class Grid:
     
     #Main Builder Function
     def build_grid(self):
-        hole_count = 0 #A map cannot have more 5% of it as holes. 
+        hole_count = 0 #A map cannot have more 2% of it as holes. 
         grid = self.getGrid()
         gridsize = self.getSize()
         #Building walls
         self.build_wall(grid)
-        blocked_count = int(gridsize[0]*gridsize[1]*0.40) #40% of the grid must be blocked
+        blocked_count = int(gridsize[0]*gridsize[1]*0.35) #35% of the grid must be blocked
         
         while blocked_count > 0 :
             #picking x and y by avoiding the edges
@@ -43,7 +42,7 @@ class Grid:
             y = random.randint(1,grid.shape[1]-2)
             if (x,y) in Grid.vertical_wall or (x,y) in Grid.horizontal_wall:
                 continue
-            #making sure , the hole count does not exceed 5% of the map grid count
+            #making sure , the hole count does not exceed 2% of the map grid count
             obstacle = self.choose_obstacle(hole_count,gridsize)
             #Direct Neighbors
             up = (x-1,y)
@@ -133,7 +132,7 @@ class Grid:
                 obstacle = random.choice(Grid.obstacles)
                 if obstacle == 4:
                     #check hole counter
-                    if hole_count == int(gridsize[0]*gridsize[1]*0.05) :
+                    if hole_count == int(gridsize[0]*gridsize[1]*0.02) :
                         continue
                     else:
                         hole_count+=1
@@ -142,7 +141,6 @@ class Grid:
                     break
         return obstacle
 
-
     #Cleaning grid house path
     def clean_grid(self):
         #clean outside
@@ -150,22 +148,58 @@ class Grid:
         for x,y in Grid.vertical_wall:
             grid[x,y-1] = 1
             grid[x,y-2] = 1
-            if x!=4:
+            if x!=4: #to avoid removing part of the horizontal wall, the part below clears the house from inside
                 grid[x,y+1] = 1
                 grid[x,y+2] = 1
-        for x,y in Grid.horizontal_wall:
+        for x,y in Grid.horizontal_wall: 
             grid[x+1,y] = 1
             grid[x+2,y] = 1
-        
-    #Main Generator Function -> You will use this when generating 
+        grid[Grid.vertical_wall[-1][0]+1, Grid.horizontal_wall[0][1]-1] = 1 #cleaning the direct diagonal of the house vertex
+    #Sets a random passable spawn point for the player
+    def set_spawn(self):
+        grid = self.getGrid()
+        while True:
+            x = random.randint((grid.shape[0] // 2), grid.shape[0] - 2) #Can spawn at the lower half
+            y = random.randint(1, grid.shape[1] - 2)
+            if (x, y) in Grid.vertical_wall or (x, y) in Grid.horizontal_wall:
+                continue
+            if grid[x, y] in Grid.passable:
+                return (x, y)
+
+    #Validates that a path exists between spawn and the gate (value 5) via BFS
+    def validate_spawn_to_gate(self, spawn):
+        grid = self.getGrid()
+        queue = deque([spawn])
+        visited = {spawn}
+        while queue:
+            x, y = queue.popleft()
+            # if we reached the gate
+            if grid[x, y] == 5:
+                return True
+            for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]: #moves to the neighbors (direct NOT DIAGONAL)
+                nx, ny = x + dx, y + dy
+                if (nx, ny) in visited:
+                    continue
+                if grid[nx, ny] in Grid.passable or grid[nx, ny] == 5:
+                    visited.add((nx, ny))
+                    queue.append((nx, ny))
+        #No path found -> 
+        return False
+
+    #Main Generator Function, You will use this when generating 
     def generate_grid(self):
-        self.build_grid()
-        self.clean_grid()
+        while True:
+            # Reset grid on each attempt
+            self.grid = np.ones((20, 20))
+            self.build_grid()
+            self.clean_grid()
+            spawn = self.set_spawn()
+            if self.validate_spawn_to_gate(spawn):
+                print(f"Spawn Point: {spawn}")
+                break
     
     #Grid Visualizer
     def showGrid(self):
-        colors = ['green', 'grey', 'black', 'yellow', 'red', 'blue']
+        colors = ['black', 'grey', 'black', 'yellow', 'red', 'blue']
         cmap = ListedColormap(colors)
         plt.imshow(self.getGrid(), cmap = cmap, vmin = 0, vmax = 5)
-    
-    
