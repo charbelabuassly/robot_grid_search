@@ -7,8 +7,8 @@ from collections import deque
 
 class Grid:
     #------------------------------------------------------ Static Variables
-    obstacles = [0 , 2, 3 , 4]
-    passable = [1,3] #obstacles which allow passage
+    obstacles = [0, 2, 3 ,4]
+    passable = [1, 3] #obstacles which allow passage
     #House Walls
     vertical_wall = [(1,16),(2,16),(3,16),(4,16)]
     horizontal_wall = [(4,16),(4,17),(4,18)]    
@@ -35,31 +35,34 @@ class Grid:
         #Building walls
         self.build_wall(grid)
         blocked_count = int(gridsize[0]*gridsize[1]*0.35) #35% of the grid must be blocked
+
+        num_of_squares = gridsize[0]*gridsize[1]
+        max_blocked_count = int(num_of_squares*0.35) #35% of the grid must be blocked (any obstacle)
+        max_hole_count = int(num_of_squares*0.02) #2% of the grid must be holes
         
-        while blocked_count > 0 :
+        while blocked_count < max_blocked_count :
             #picking x and y by avoiding the edges
             x = random.randint(1,grid.shape[0]-2) 
             y = random.randint(1,grid.shape[1]-2)
             if (x,y) in Grid.vertical_wall or (x,y) in Grid.horizontal_wall:
                 continue
             #making sure , the hole count does not exceed 2% of the map grid count
-            obstacle = self.choose_obstacle(hole_count,gridsize)
+            obstacle = self.choose_obstacle(hole_count,max_hole_count)
             #Direct Neighbors
             up = (x-1,y)
             down = (x+1,y)
             left = (x,y-1)
             right = (x,y+1)
             temp = [up,down,left,right]
+            #It is prohibited for any obstacle of any kind to block the gate.
             check = [1 if  grid[n[0],n[1]] == 5 else 0 for n in temp]
             if sum(check) != 0:
-                continue;    
-            #It is prohibited for any obstacle of any kind to block the gate.
+                continue    
             
-            if obstacle == 3:
+            if obstacle == 3: #3 for quicksand
                 grid[x,y] = 3
-                blocked_count-=1
-            else: #obstacle NOT passable
-                
+                blocked_count+=1
+            else: #obstacle NOT passable (wall)
                 count = 0 #passable neigbors count
                 passable_neigbors = [] #store all the passable neighbors
                 
@@ -71,7 +74,7 @@ class Grid:
                 if count < 2:
                     #safe to add the obstacle
                     grid[x,y] = obstacle
-                    blocked_count-=1
+                    blocked_count+=1
                 elif count >= 2:
                     #choose a random neighbor and check the connectivity between all passable neighbors
                     chosen = random.choice(passable_neigbors)
@@ -79,7 +82,7 @@ class Grid:
                     if state:
                         #safe to add
                         grid[x,y] = obstacle
-                        blocked_count-=1
+                        blocked_count+=1
         return grid
     
     #BFS for ensuring atleast 1 neighbor connectivity
@@ -127,16 +130,16 @@ class Grid:
         grid[coords[0],coords[1]] = 5
 
     #Choosing valid obstacle
-    def choose_obstacle(self,hole_count, gridsize):
+    def choose_obstacle(self,hole_count, max_hole_count):
         while(True):
                 obstacle = random.choice(Grid.obstacles)
                 if obstacle == 4:
                     #check hole counter
-                    if hole_count == int(gridsize[0]*gridsize[1]*0.02) :
+                    if hole_count == max_hole_count :
                         continue
                     else:
                         hole_count+=1
-                        break;
+                        break
                 else:
                     break
         return obstacle
