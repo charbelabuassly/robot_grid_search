@@ -9,6 +9,7 @@ from grid.grid import Grid
 # ----------
 
 TILE_SIZE = 30 #30 pixels
+ROBOT_COUNT = 2
 
 # Define colors
 BLACK = (0, 0, 0)
@@ -17,20 +18,25 @@ LIGHTGRAY = (200, 200, 200)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+MAGENTA = (255, 0, 255)
 
 # Color map to use it later for coloring grid tiles
 COLOR_MAP = {
-    0: BLACK,       # Wall
+    0: LIGHTGRAY,   # Unused (kept for safety)
     1: LIGHTGRAY,   # Open Path (Gray)
-    2: BLACK,       # Wall again if 0-2 all walls
+    2: BLACK,       # Wall
     3: YELLOW,      # Quicksand
     4: RED,         # Hole
-    5: BLUE         # Gate
+    5: BLUE,        # Gate
+    6: GREEN,       # Player spawn
+    7: MAGENTA      # Robot spawn
+    
 }
 
 def main():
     g = Grid() #Creating Grid object instance
-    g.generate_grid() #Generating the grid
+    g.generate_grid(ROBOT_COUNT) #Generating the grid
     grid_map = g.getGrid() #Getting the grid as a numpy array
     gridSize = g.getSize() #returns a tuple of (x,y)
 

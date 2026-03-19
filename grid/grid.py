@@ -7,7 +7,7 @@ from collections import deque
 
 class Grid:
     #------------------------------------------------------ Static Variables
-    obstacles = [0, 2, 3 ,4]
+    obstacles = [2, 3, 4]
     passable = [1, 3] #obstacles which allow passage
     #House Walls
     vertical_wall = [(1,16),(2,16),(3,16),(4,16)]
@@ -160,15 +160,31 @@ class Grid:
         grid[Grid.vertical_wall[-1][0]+1, Grid.horizontal_wall[0][1]-1] = 1 #cleaning the direct diagonal of the house vertex
 
     #Sets a random passable spawn point for the player
-    def set_spawn(self):
+    def set_spawn_player(self):
         grid = self.getGrid()
         while True:
-            x = random.randint((grid.shape[0] // 2), grid.shape[0] - 2) #Can spawn at the lower half
+            x = random.randint((grid.shape[0] // 2) + 1, grid.shape[0] - 2) #Can spawn at the lower half
             y = random.randint(1, grid.shape[1] - 2)
             if (x, y) in Grid.vertical_wall or (x, y) in Grid.horizontal_wall:
                 continue
-            if grid[x, y] in Grid.passable:
-                return (x, y)
+            if grid[x, y] == 1:
+                self.spawn = (x, y)
+                return self.spawn
+            
+    #Sets a random passable spawn point for the robot
+    def set_spawn_robot(self):
+        grid = self.getGrid()
+        while True:
+            x = random.randint(1, grid.shape[0] // 2) #Can spawn at the upper half
+            y = random.randint(1, grid.shape[1] - 2)
+            if (x, y) in Grid.vertical_wall or (x, y) in Grid.horizontal_wall:
+                continue
+            # Avoid the house area (around the blue gate)
+            if 1 <= x <= 4 and 16 <= y <= 18:
+                continue
+            if grid[x, y] == 1:
+                self.spawn = (x, y)
+                return self.spawn
 
     #Validates that a path exists between spawn and the gate (value 5) via BFS
     def validate_spawn_to_gate(self, spawn):
@@ -184,6 +200,7 @@ class Grid:
                 nx, ny = x + dx, y + dy
                 if (nx, ny) in visited:
                     continue
+                # Allow traversal on passable tiles (grey + yellow) and the gate (blue)
                 if grid[nx, ny] in Grid.passable or grid[nx, ny] == 5:
                     visited.add((nx, ny))
                     queue.append((nx, ny))
@@ -191,20 +208,30 @@ class Grid:
         return False
 
     #Main Generator Function, You will use this when generating 
-    def generate_grid(self):
+    def generate_grid(self, robot_count):
         while True:
             # Reset grid on each attempt
+            robot_arr = []
             self.grid = np.ones((20, 20))
             self.build_grid()
             self.clean_grid()
-            spawn = self.set_spawn()
-            if self.validate_spawn_to_gate(spawn):
-                print(f"Spawn Point: {spawn}")
-                break
-            print(self.grid)
+            player_spawn = self.set_spawn_player()
+            for i in range(0,robot_count):
+                robot_arr.append(self.set_spawn_robot())
+            if self.validate_spawn_to_gate(player_spawn):
+                all_ok = all(self.validate_spawn_to_gate(r) for r in robot_arr) #validate each robot spawn
+                if not all_ok:
+                    continue
+                grid = self.getGrid()
+                grid[player_spawn[0], player_spawn[1]] = 6
+                for i in robot_arr:
+                    grid[i[0], i[1]] = 7
+                return player_spawn, robot_arr
+            #print(self.grid)
+            
     
     #Grid Visualizer
     def showGrid(self):
-        colors = ['black', 'grey', 'black', 'yellow', 'red', 'blue']
+        colors = ['grey', 'black', 'yellow', 'red', 'blue', 'green', 'magenta' ]
         cmap = ListedColormap(colors)
-        plt.imshow(self.getGrid(), cmap = cmap, vmin = 0, vmax = 5)
+        plt.imshow(self.getGrid(), cmap = cmap, vmin = 1, vmax = 7)
