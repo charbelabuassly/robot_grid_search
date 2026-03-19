@@ -29,17 +29,17 @@ class Grid:
     
     #Main Builder Function
     def build_grid(self):
-        hole_count = 0 #A map cannot have more 2% of it as holes. 
         grid = self.getGrid()
         gridsize = self.getSize()
-        #Building walls
+        #Building border walls
         self.build_wall(grid)
-        blocked_count = int(gridsize[0]*gridsize[1]*0.35) #35% of the grid must be blocked
 
         num_of_squares = gridsize[0]*gridsize[1]
         max_blocked_count = int(num_of_squares*0.35) #35% of the grid must be blocked (any obstacle)
         max_hole_count = int(num_of_squares*0.02) #2% of the grid must be holes
-        
+        blocked_count = 0
+        hole_count = 0
+
         while blocked_count < max_blocked_count :
             #picking x and y by avoiding the edges
             x = random.randint(1,grid.shape[0]-2) 
@@ -125,7 +125,7 @@ class Grid:
             grid[x,y] = 2
         for x,y in Grid.vertical_wall:
             grid[x,y] = 2
-        #Installing the gate
+        #Installing the gate (gridsize[] - 3?)
         coords = random.choice([(2,16),(3,16)]) #gate coords
         grid[coords[0],coords[1]] = 5
 
@@ -158,6 +158,7 @@ class Grid:
             grid[x+1,y] = 1
             grid[x+2,y] = 1
         grid[Grid.vertical_wall[-1][0]+1, Grid.horizontal_wall[0][1]-1] = 1 #cleaning the direct diagonal of the house vertex
+
     #Sets a random passable spawn point for the player
     def set_spawn(self):
         grid = self.getGrid()
@@ -200,6 +201,7 @@ class Grid:
             if self.validate_spawn_to_gate(spawn):
                 print(f"Spawn Point: {spawn}")
                 break
+            print(self.grid)
     
     #Grid Visualizer
     def showGrid(self):
