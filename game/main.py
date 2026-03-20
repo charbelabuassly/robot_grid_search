@@ -81,7 +81,8 @@ def main():
                     pass
 
                 if next_move is not None and is_in_bounds(next_move, gridSize):
-                    player.x, player.y = next_move
+                    if not grid_map[next_move[0],next_move[1]] in [0, 2]:
+                        player.x, player.y = next_move
 
        
         draw_player(screen, player)
