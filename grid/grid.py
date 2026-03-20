@@ -36,7 +36,7 @@ class Grid:
 
         num_of_squares = gridsize[0]*gridsize[1]
         max_blocked_count = int(num_of_squares*0.35) #35% of the grid must be blocked (any obstacle)
-        max_hole_count = int(num_of_squares*0.02) #2% of the grid must be holes
+        max_hole_count = int(num_of_squares*0.012) #1.2% of the grid must be holes
         blocked_count = 0
         hole_count = 0
 

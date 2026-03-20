@@ -81,7 +81,9 @@ def main():
                     pass
 
                 if next_move is not None and is_in_bounds(next_move, gridSize):
-                    if not grid_map[next_move[0],next_move[1]] in [0, 2]:
+                    if grid_map[next_move[0],next_move[1]] == 4: #If hole reset the position
+                        player.x , player.y = (player_spawn[1], player_spawn[0])
+                    elif not grid_map[next_move[0],next_move[1]] in [0, 2]: #if not blocking
                         player.x, player.y = next_move
 
        
