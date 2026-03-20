@@ -40,7 +40,7 @@ pygame.init() #Init
 valid_inputs = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_RETURN] #valid keys 
 
 def main():
-    g = Grid() #Creating Grid object instance
+    g = Grid(20, 20) #Creating Grid object instance
     player_spawn, robot_spawn = g.generate_grid(ROBOT_COUNT) #Generating the grid, getting the player spawn (tuple) and the robot spawn (array of tuples)
     grid_map = g.getGrid().T #Getting the grid as a numpy array
     grid_size = g.getSize() #returns a tuple of (x,y)
