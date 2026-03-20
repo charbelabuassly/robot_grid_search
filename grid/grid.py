@@ -8,14 +8,18 @@ from collections import deque
 class Grid:
     #------------------------------------------------------ Static Variables
     obstacles = [2, 3, 4]
-    passable = [1, 3] #obstacles which allow passage
-    #House Walls
-    vertical_wall = [(1,16),(2,16),(3,16),(4,16)]
-    horizontal_wall = [(4,16),(4,17),(4,18)]    
+    passable = [1, 3] #obstacles which allow passage   
     # ----------------------------------------------------- Constructor & Getters    
-    def __init__(self):
-        self.grid = np.ones((20,20))
-        self.gridsize = (20,20)
+    def __init__(self, x, y):
+        self.gridsize = (x,y) #max should be 38x38 for tilesize 20 + rows must always be equal to cols as long as we double transpose in main
+        #it would be better for gridsize to just be one number since they have to be equal for the transposing to work, either that or avoid double transposing ofc
+        #i kept it a tuple for compatibility and if we have time to fix later on
+        self.grid = np.ones(self.gridsize)
+        # House walls
+        temp1 = self.gridsize[1] - 4 
+        temp2 = self.gridsize[0] - 4
+        self.vertical_wall = [(1,temp1),(2,temp1),(3,temp1),(4,temp1)]
+        self.horizontal_wall = [(4,temp2),(4,temp2 + 1),(4, temp2 + 2)]
         
     def setGate(self,coords):
         self.coords = coords
@@ -44,7 +48,7 @@ class Grid:
             #picking x and y by avoiding the edges
             x = random.randint(1,grid.shape[0]-2) 
             y = random.randint(1,grid.shape[1]-2)
-            if (x,y) in Grid.vertical_wall or (x,y) in Grid.horizontal_wall:
+            if (x,y) in self.vertical_wall or (x,y) in self.horizontal_wall:
                 continue
             #making sure , the hole count does not exceed 2% of the map grid count
             obstacle = self.choose_obstacle(hole_count,max_hole_count)
@@ -121,12 +125,12 @@ class Grid:
         grid[-1, : ] = 2
         grid[:, -1] = 2
         #building the walls
-        for x,y in Grid.horizontal_wall:
+        for x,y in self.horizontal_wall:
             grid[x,y] = 2
-        for x,y in Grid.vertical_wall:
+        for x,y in self.vertical_wall:
             grid[x,y] = 2
         #Installing the gate (gridsize[] - 3?)
-        coords = random.choice([(2,16),(3,16)]) #gate coords
+        coords = random.choice([(2,self.gridsize[1] - 4),(3,self.gridsize[1] - 4)]) #gate coords
         grid[coords[0],coords[1]] = 5
 
     #Choosing valid obstacle
@@ -148,16 +152,16 @@ class Grid:
     def clean_grid(self):
         #clean outside
         grid = self.getGrid()
-        for x,y in Grid.vertical_wall:
+        for x,y in self.vertical_wall:
             grid[x,y-1] = 1
             grid[x,y-2] = 1
             if x!=4: #to avoid removing part of the horizontal wall, the part below clears the house from inside
                 grid[x,y+1] = 1
                 grid[x,y+2] = 1
-        for x,y in Grid.horizontal_wall: 
+        for x,y in self.horizontal_wall: 
             grid[x+1,y] = 1
             grid[x+2,y] = 1
-        grid[Grid.vertical_wall[-1][0]+1, Grid.horizontal_wall[0][1]-1] = 1 #cleaning the direct diagonal of the house vertex
+        grid[self.vertical_wall[-1][0]+1, self.horizontal_wall[0][1]-1] = 1 #cleaning the direct diagonal of the house vertex
 
     #Sets a random passable spawn point for the player
     def set_spawn_player(self):
@@ -165,7 +169,7 @@ class Grid:
         while True:
             x = random.randint((grid.shape[0] // 2) + 1, grid.shape[0] - 2) #Can spawn at the lower half
             y = random.randint(1, grid.shape[1] - 2)
-            if (x, y) in Grid.vertical_wall or (x, y) in Grid.horizontal_wall:
+            if (x, y) in self.vertical_wall or (x, y) in self.horizontal_wall:
                 continue
             if grid[x, y] == 1:
                 self.spawn = (x, y)
@@ -177,7 +181,7 @@ class Grid:
         while True:
             x = random.randint(1, grid.shape[0] // 2) #Can spawn at the upper half
             y = random.randint(1, grid.shape[1] - 2)
-            if (x, y) in Grid.vertical_wall or (x, y) in Grid.horizontal_wall:
+            if (x, y) in self.vertical_wall or (x, y) in self.horizontal_wall:
                 continue
             # Avoid the house area (around the blue gate)
             if 1 <= x <= 4 and 16 <= y <= 18:
@@ -212,7 +216,7 @@ class Grid:
         while True:
             # Reset grid on each attempt
             robot_arr = []
-            self.grid = np.ones((20, 20))
+            self.grid = np.ones(self.gridsize)
             self.build_grid()
             self.clean_grid()
             player_spawn = self.set_spawn_player()

@@ -8,7 +8,7 @@ from grid.grid import Grid
 # ----------
 # CONSTANTS
 # ----------
-TILE_SIZE = 30 #30 pixels
+TILE_SIZE = 20 #20 pixels
 ROBOT_COUNT = 2
 
 # Define colors
@@ -39,10 +39,10 @@ pygame.init() #Init
 valid_inputs = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_RETURN] #valid keys 
 
 def main():
-    g = Grid() #Creating Grid object instance
+    g = Grid(20, 20) #Creating Grid object instance
     player_spawn, robot_spawn = g.generate_grid(ROBOT_COUNT) #Generating the grid, getting the player spawn (tuple) and the robot spawn (array of tuples)
     grid_map = g.getGrid().T #Getting the grid as a numpy array
-    gridSize = g.getSize() #returns a tuple of (x,y)
+    grid_size = g.getSize() #returns a tuple of (x,y)
 
     #Creating the Player instance
     player = Player(player_spawn[1], player_spawn[0]) # x-> horizontal & y -> vertical
@@ -51,14 +51,14 @@ def main():
     # ---------------
     # MAIN CONSTANTS
     # ---------------
-    HEIGHT = TILE_SIZE * gridSize[0]
-    WIDTH = TILE_SIZE * gridSize[1]
+    HEIGHT = TILE_SIZE * grid_size[0]
+    WIDTH = TILE_SIZE * grid_size[1]
 
     # Game Window
     screen = pygame.display.set_mode((WIDTH, HEIGHT)) #Size 
     pygame.display.set_caption("AI Project") #Title
     #build grid and player at first frame
-    buildGrid(grid_map, gridSize, screen) 
+    buildGrid(grid_map, grid_size, screen) 
     draw_player(screen, player)
     #The while loop keeps on running to check for events, the events check for the type of event, if key is prssed, next pos is set
     #then we update the player pos and redraw the grid with the new position
@@ -68,7 +68,7 @@ def main():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN and event.key in valid_inputs: #If key is pressed, and in the valid key inputs
-                buildGrid(grid_map, gridSize, screen) #rebuild the grid at every new input, it will be drawn over the characters and robots
+                buildGrid(grid_map, grid_size, screen) #rebuild the grid at every new input, it will be drawn over the characters and robots
                 if event.key == pygame.K_LEFT:
                     next_move = (player.x - 1, player.y) #moving left
                     #print(COLOR_MAP[int(grid_map[next_move[0],next_move[1]])])
@@ -90,9 +90,9 @@ def main():
         #anything drawn here will be redrawn every frame, which is not necessary for our use case
         pygame.display.update() #Display the grid after building it
 
-def buildGrid(gridArr, gridSize, screen):
-    for row in range(0,gridSize[0]):
-        for col in range(0, gridSize[1]):
+def buildGrid(gridArr, grid_size, screen):
+    for row in range(0,grid_size[0]):
+        for col in range(0, grid_size[1]):
             rect = pygame.Rect(row*TILE_SIZE,col*TILE_SIZE,TILE_SIZE, TILE_SIZE) #pygame places the rectangle on the window using
             #the x and y coordinates of the top-left corner of the rectangle, but we need to multiply x and y by the 
             #tilesize to determine its placement on the window itself. The 2 others args represent the size of the rectangle
