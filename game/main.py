@@ -32,7 +32,6 @@ COLOR_MAP = {
     5: BLUE,        # Gate
     6: GREEN,       # Player spawn
     7: MAGENTA      # Robot spawn
-    
 }
     
 #Game Init
@@ -86,7 +85,6 @@ def main():
                     elif not grid_map[next_move[0],next_move[1]] in [0, 2]: #if not blocking
                         player.x, player.y = next_move
 
-       
         draw_player(screen, player)
 
         pygame.display.update() #Display the grid after building it
