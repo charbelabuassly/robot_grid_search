@@ -32,7 +32,6 @@ COLOR_MAP = {
     5: BLUE,        # Gate
     6: GREEN,       # Player spawn
     7: MAGENTA      # Robot spawn
-    
 }
     
 #Game Init
@@ -40,9 +39,10 @@ pygame.init() #Init
 valid_inputs = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_RETURN] #valid keys 
 
 def main():
-    g = Grid(20, 20) #Creating Grid object instance
+    g = Grid(20, 30) #Creating Grid object instance
     player_spawn, robot_spawn = g.generate_grid(ROBOT_COUNT) #Generating the grid, getting the player spawn (tuple) and the robot spawn (array of tuples)
     grid_map = g.getGrid().T #Getting the grid as a numpy array
+    #print(grid_map) it's flipped omg
     grid_size = g.getSize() #returns a tuple of (x,y)
 
     #Creating the Player instance
@@ -94,12 +94,13 @@ def main():
 def buildGrid(gridArr, grid_size, screen):
     for row in range(0,grid_size[0]):
         for col in range(0, grid_size[1]):
-            rect = pygame.Rect(row*TILE_SIZE,col*TILE_SIZE,TILE_SIZE, TILE_SIZE) #pygame places the rectangle on the window using
+            #i swapped col and row in the next 2 lines and it worked im not sure why need to think about it later, other comments may be outdated idk i cant read now
+            rect = pygame.Rect(col*TILE_SIZE,row*TILE_SIZE,TILE_SIZE, TILE_SIZE) #pygame places the rectangle on the window using
             #the x and y coordinates of the top-left corner of the rectangle, but we need to multiply x and y by the 
             #tilesize to determine its placement on the window itself. The 2 others args represent the size of the rectangle
             #Another note is that we flip row and column location because unlike in arrays where origin is the top left,
             #here the origin is bottom left (axis form), where horizontal -> x [LEFT -> RIGHT] and vertical -> Y (DOWN -> UP)
-            val = gridArr[row, col] #will be used to determine the color
+            val = gridArr[col, row] #will be used to determine the color
             pygame.draw.rect(screen, COLOR_MAP[val], rect, 0) # (surface, color, shape, border_width)
 
 def draw_player(screen, player):
