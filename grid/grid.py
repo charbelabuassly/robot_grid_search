@@ -223,7 +223,7 @@ class Grid:
                 if not all_ok:
                     continue
                 grid = self.getGrid()
-                grid[player_spawn[0], player_spawn[1]] = 6
+                #grid[player_spawn[0], player_spawn[1]] = 6
                 for i in robot_arr:
                     grid[i[0], i[1]] = 7
                 return player_spawn, robot_arr
