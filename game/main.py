@@ -46,8 +46,8 @@ def main():
     gridSize = g.getSize() #returns a tuple of (x,y)
 
     #Creating the Player instance
-    player = Player(player_spawn[1], player_spawn[0])
-    print(f"Player pos: ({player.x},{player.y})")
+    player = Player(player_spawn[1], player_spawn[0]) # x-> horizontal & y -> vertical
+    #Player position represented on the flipped numpy array
     
     # ---------------
     # MAIN CONSTANTS
@@ -69,6 +69,7 @@ def main():
             if event.type == pygame.KEYDOWN and event.key in valid_inputs: #If key is pressed, and in the valid key inputs
                 if event.key == pygame.K_LEFT:
                     next_move = (player.x - 1, player.y) #moving left
+                    #print(COLOR_MAP[int(grid_map[next_move[0],next_move[1]])])
                 elif event.key == pygame.K_RIGHT:
                     next_move = (player.x + 1, player.y) #moving right
                 elif event.key == pygame.K_UP:
