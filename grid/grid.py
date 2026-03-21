@@ -16,10 +16,9 @@ class Grid:
         #i kept it a tuple for compatibility and if we have time to fix later on
         self.grid = np.ones(self.gridsize)
         # House walls
-        temp1 = self.gridsize[1] - 4 
-        temp2 = self.gridsize[0] - 4
-        self.vertical_wall = [(1,temp1),(2,temp1),(3,temp1),(4,temp1)]
-        self.horizontal_wall = [(4,temp2),(4,temp2 + 1),(4, temp2 + 2)]
+        temp = self.gridsize[1] - 4 
+        self.vertical_wall = [(1,temp),(2,temp),(3,temp),(4,temp)]
+        self.horizontal_wall = [(4,temp),(4,temp + 1),(4, temp + 2)]
         
     def setGate(self,coords):
         self.coords = coords
