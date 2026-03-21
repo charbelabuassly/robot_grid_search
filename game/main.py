@@ -94,7 +94,7 @@ def main():
                         player.x, player.y = next_move
                     
                 for robot in robots:
-                    robot.current_pos = robot.patrol_search(grid_size, grid_map)
+                    robot.current_pos = robot.patrol_search(grid_map.shape, grid_map)
 
                 draw_player(screen, player) #redraw the player after each input at new position
                 draw_robots(screen, robots)
