@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from player import Player
+from robot import Robot
 import pygame
 from grid.grid import Grid
 
@@ -48,6 +49,9 @@ def main():
     player = Player(player_spawn[1], player_spawn[0]) # x-> horizontal & y -> vertical
     #Player position represented on the flipped numpy array
     
+    #Creating the Robot instances
+    robots = [Robot(spawn[1], spawn[0]) for spawn in robot_spawn] #Creating an array of Robot instances 
+    
     # ---------------
     # MAIN CONSTANTS
     # ---------------
@@ -60,6 +64,7 @@ def main():
     #build grid and player at first frame
     buildGrid(grid_map, grid_size, screen) 
     draw_player(screen, player)
+    draw_robots(screen, robots)
     #The while loop keeps on running to check for events, the events check for the type of event, if key is prssed, next pos is set
     #then we update the player pos and redraw the grid with the new position
     while True: #While true loop to keep it from closing (just like in opengl)
@@ -86,7 +91,12 @@ def main():
                         player.x , player.y = (player_spawn[1], player_spawn[0])
                     elif not grid_map[next_move[0],next_move[1]] in [0, 2]: #if not blocking
                         player.x, player.y = next_move
+                    
+                for robot in robots:
+                    robot.current_pos = robot.patrol_search(grid_size, grid_map)
+
                 draw_player(screen, player) #redraw the player after each input at new position
+                draw_robots(screen, robots)
         #anything drawn here will be redrawn every frame, which is not necessary for our use case
         pygame.display.update() #Display the grid after building it
 
@@ -104,5 +114,10 @@ def buildGrid(gridArr, grid_size, screen):
 def draw_player(screen, player):
     rect = pygame.Rect(player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
     pygame.draw.rect(screen, GREEN, rect, 0)
+
+def draw_robots(screen, robots):
+    for robot in robots:
+        rect = pygame.Rect(robot.current_pos[0] * TILE_SIZE, robot.current_pos[1] * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+        pygame.draw.rect(screen, MAGENTA, rect, 0)
 
 main()

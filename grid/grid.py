@@ -226,10 +226,8 @@ class Grid:
                 all_ok = all(self.validate_spawn_to_gate(r) for r in robot_arr) #validate each robot spawn
                 if not all_ok:
                     continue
-                grid = self.getGrid()
+                #grid = self.getGrid()
                 #grid[player_spawn[0], player_spawn[1]] = 6
-                for i in robot_arr:
-                    grid[i[0], i[1]] = 7
                 return player_spawn, robot_arr
             #print(self.grid)
             
