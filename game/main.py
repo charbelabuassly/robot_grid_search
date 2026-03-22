@@ -103,7 +103,15 @@ def main():
         if robot_timer_ms >= robot_move_interval_ms: #If robot timer has passed the set time, we move the robot
             robot_timer_ms -= robot_move_interval_ms
             for robot in robots:
-                robot.current_pos = robot.patrol_search(grid_map.shape, grid_map)
+                next_pos, detected = robot.decide_next_move(
+                    (player.x, player.y),
+                    grid_map.shape,
+                    grid_map
+                )
+                if detected:
+                    print("Detection")
+                else:
+                    robot.current_pos = next_pos
             buildGrid(grid_map, grid_size, screen)
             draw_player(screen, player) #We include this here, in case the user didnt move the player at 
             # a specific iteration to redraw it regardless
