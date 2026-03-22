@@ -10,7 +10,7 @@ from grid.grid import Grid
 # CONSTANTS
 # ----------
 TILE_SIZE = 20 #20 pixels
-ROBOT_COUNT = 2
+ROBOT_COUNT = 3
 
 # Define colors
 BLACK = (0, 0, 0)
@@ -122,7 +122,6 @@ def main():
 def buildGrid(gridArr, grid_size, screen):
     for row in range(0,grid_size[0]):
         for col in range(0, grid_size[1]):
-            #i swapped col and row in the next 2 lines and it worked im not sure why need to think about it later, other comments may be outdated idk i cant read now
             rect = pygame.Rect(col*TILE_SIZE,row*TILE_SIZE,TILE_SIZE, TILE_SIZE) #pygame places the rectangle on the window using
             #the x and y coordinates of the top-left corner of the rectangle, but we need to multiply x and y by the 
             #tilesize to determine its placement on the window itself. The 2 others args represent the size of the rectangle

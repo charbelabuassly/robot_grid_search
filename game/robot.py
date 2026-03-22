@@ -146,6 +146,9 @@ class Robot:
             
         return self.path.pop()
 
+    # ------------------------
+    # GLOBAL DECIDER FUNCTION
+    # ------------------------
     def decide_next_move(self, player_pos, gridsize, grid_map):
         if Robot.detect_enemy(player_pos, self.current_pos, grid_map):
             self.state = State.CHASE
