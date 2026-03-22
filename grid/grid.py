@@ -16,9 +16,9 @@ class Grid:
         #i kept it a tuple for compatibility and if we have time to fix later on
         self.grid = np.ones(self.gridsize)
         # House walls
-        temp = self.gridsize[1] - 4 
-        self.vertical_wall = [(1,temp),(2,temp),(3,temp),(4,temp)]
-        self.horizontal_wall = [(4,temp),(4,temp + 1),(4, temp + 2)]
+        self.temp = self.gridsize[1] - 4 
+        self.vertical_wall = [(1,self.temp),(2,self.temp),(3,self.temp),(4,self.temp)]
+        self.horizontal_wall = [(4,self.temp),(4,self.temp + 1),(4, self.temp + 2)]
         
     def setGate(self,coords):
         self.coords = coords
@@ -183,7 +183,7 @@ class Grid:
             if (x, y) in self.vertical_wall or (x, y) in self.horizontal_wall:
                 continue
             # Avoid the house area (around the blue gate)
-            if 1 <= x <= 4 and 16 <= y <= 18:
+            if 1 <= x <= 4 and (y >= self.temp):
                 continue
             if grid[x, y] == 1:
                 self.spawn = (x, y)

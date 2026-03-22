@@ -14,11 +14,11 @@ class Robot:
         self.last_seen = None #Last seen player postion
         self.path = [] #The full path determined by the search algorithm
         self.current_pos = (x,y) #initially the same position as the spawn
+        self.hole_pos = [] #internal memory for all the detected/remembered holes
         
     # -----------------
     # HELPER FUNCTIONS
     # -----------------
-    
     #Chooses the robot's next target
     @staticmethod
     def choose_valid_point(gridsize, grid_map):

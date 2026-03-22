@@ -62,6 +62,9 @@ def main():
     # Game Window
     screen = pygame.display.set_mode((WIDTH, HEIGHT)) #Size 
     pygame.display.set_caption("AI Project") #Title
+    clock = pygame.time.Clock()
+    robot_move_interval_ms = 600 #only move once every 400 ms
+    robot_timer_ms = 0 #counts passed time
     #build grid and player at first frame
     buildGrid(grid_map, grid_size, screen) 
     draw_player(screen, player)
@@ -69,6 +72,8 @@ def main():
     #The while loop keeps on running to check for events, the events check for the type of event, if key is prssed, next pos is set
     #then we update the player pos and redraw the grid with the new position
     while True: #While true loop to keep it from closing (just like in opengl)
+        dt_ms = clock.tick(60)
+        robot_timer_ms += dt_ms #Add the time
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -92,12 +97,17 @@ def main():
                         player.x , player.y = (player_spawn[1], player_spawn[0])
                     elif not grid_map[next_move[0],next_move[1]] in [0, 2]: #if not blocking
                         player.x, player.y = next_move
-                    
-                for robot in robots:
-                    robot.current_pos = robot.patrol_search(grid_map.shape, grid_map)
-
                 draw_player(screen, player) #redraw the player after each input at new position
-                draw_robots(screen, robots)
+                draw_robots(screen, robots)  #Robot redraw incase the robot hasn't been moved
+                
+        if robot_timer_ms >= robot_move_interval_ms: #If robot timer has passed the set time, we move the robot
+            robot_timer_ms -= robot_move_interval_ms
+            for robot in robots:
+                robot.current_pos = robot.patrol_search(grid_map.shape, grid_map)
+            buildGrid(grid_map, grid_size, screen)
+            draw_player(screen, player) #We include this here, in case the user didnt move the player at 
+            # a specific iteration to redraw it regardless
+            draw_robots(screen, robots)
         #anything drawn here will be redrawn every frame, which is not necessary for our use case
         pygame.display.update() #Display the grid after building it
 
