@@ -142,7 +142,7 @@ class Robot:
         #If no path, pick target, try bfs -> if fail retry
         #else we take one step of planned path
         if self.path is None or self.path == []:
-            self.path = self.create_path_patrol(gridsize, grid_map, self.current_pos )
+            self.path = self.create_path_patrol(gridsize, grid_map, self.current_pos)
             
         return self.path.pop()
 

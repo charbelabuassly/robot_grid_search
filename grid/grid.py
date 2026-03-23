@@ -11,9 +11,7 @@ class Grid:
     passable = [1, 3] #obstacles which allow passage   
     # ----------------------------------------------------- Constructor & Getters    
     def __init__(self, x, y):
-        self.gridsize = (x,y) #max should be 38x38 for tilesize 20 + rows must always be equal to cols as long as we double transpose in main
-        #it would be better for gridsize to just be one number since they have to be equal for the transposing to work, either that or avoid double transposing ofc
-        #i kept it a tuple for compatibility and if we have time to fix later on
+        self.gridsize = (x,y)
         self.grid = np.ones(self.gridsize)
         # House walls
         self.temp = self.gridsize[1] - 4 
