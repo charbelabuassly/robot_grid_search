@@ -1,1 +1,1 @@
-#This is just to amke this folder a package
+#This is just to make this folder a package
