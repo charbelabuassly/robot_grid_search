@@ -131,27 +131,28 @@ class Robot:
                     cur = came_from[cur]
                     path_stack.append(cur)
                 return path_stack
-            for dnx, dny in [(-1,0),(1,0),(0,-1),(0,1)]:
+            for dnx, dny in [(-1,0),(1,0),(0,-1),(0,1)]: #start exploring neighbors
                 nx, ny = cx + dnx, cy + dny
                 #Check if already visited
-                if((nx, ny) in visited):
+                if((nx, ny) in visited): 
                     continue
                 tile = grid_map[nx, ny]
                 #Check if passable (normal) or risky (hole)
-                if tile not in Grid.passable:
-                    if tile == 4:
+                if tile not in Grid.passable: #If it is not passable
+                    if tile == 4: #if it is a tile ->
                         #If the hole is stored by the robot, skip
                         if (nx,ny) in self.hole_pos:
                             continue
-                        elif random.random() < Robot.HOLE_PROBABILITY:
+                        elif random.random() < Robot.HOLE_PROBABILITY: #we hit the probability to fall in the hole -> then add it to the path
                             pass
-                    else:
+                    else: #Else we do not add to the path
                         continue
                 #We need to check if we are at the goal or not
                 queue.append((nx, ny))
                 visited.add((nx, ny))
                 came_from[(nx, ny)] = (cx, cy)
         return []
+
                 
     def patrol_search(self, gridsize, grid_map):
         #If no path, pick target, try bfs -> if fail retry
@@ -166,17 +167,81 @@ class Robot:
     # -----------------
     # CHASE FUNCTIONS
     # -----------------
+    def a_star(self, grid_map, current_pos, target_point):
+        # Basic A* implementation (you can tweak heuristics, costs, and rules)
+        height, width = grid_map.shape
+        open_set = {current_pos}
+        came_from = {}
+        g_score = {current_pos: 0}
+        f_score = {current_pos: Robot._heuristic(current_pos, target_point)}
+
+        while open_set:
+            # pick node in open_set with lowest f_score
+            current = min(open_set, key=lambda p: f_score.get(p, float("inf")))
+            if current == target_point:
+                # rebuild path (same style as bfs: stack/list of coords)
+                path_stack = []
+                cur = current
+                path_stack.append(cur)
+                while cur in came_from:
+                    cur = came_from[cur]
+                    path_stack.append(cur)
+                return path_stack
+
+            open_set.remove(current)
+            cx, cy = current
+            for dnx, dny in [(-1,0),(1,0),(0,-1),(0,1)]:
+                nx, ny = cx + dnx, cy + dny
+                if nx < 0 or nx >= height or ny < 0 or ny >= width:
+                    continue
+                tile = grid_map[nx, ny]
+                # Passability rule (match bfs behavior)
+                if tile not in Grid.passable:
+                    if tile == 4:
+                        if (nx, ny) in self.hole_pos:
+                            continue
+                        if random.random() >= Robot.HOLE_PROBABILITY:
+                            continue
+                    else:
+                        continue
+
+                neighbor = (nx, ny)
+                tentative_g = g_score[current] + 1
+                if tentative_g < g_score.get(neighbor, float("inf")):
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g
+                    f_score[neighbor] = tentative_g + Robot._heuristic(neighbor, target_point)
+                    open_set.add(neighbor)
+
+        return []
+
+    @staticmethod
+    def _heuristic(a, b):
+        # Manhattan distance heuristic
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
     
+    def return_path(self, player_pos, gridmap):    
+        return self.a_star(gridmap,self.current_pos, player_pos)
+        
     # ------------------------
     # GLOBAL DECIDER FUNCTION
     # ------------------------
     def decide_next_move(self, player_pos, gridsize, grid_map):
         # Helper chase state
-        if Robot.detect_enemy(player_pos, self.current_pos, grid_map):
-            self.state = State.CHASE
-            return (self.current_pos, True)
-        # Helper patrol state
-        self.state = State.PATROL
+        if self.state == State.PATROL or self.state == State.SEARCH:
+            if Robot.detect_enemy(player_pos, self.current_pos, grid_map):
+                self.state = State.CHASE
+        if self.state == State.CHASE:
+            if self._heuristic(player_pos, self.current_pos) > gridsize[0] // 2:
+                self.state = State.PATROL # to be changed to SEARCH later
+            else:
+                path = self.return_path(player_pos, grid_map)
+                if path != []:
+                    if path[-1] == self.current_pos:
+                        path.pop()
+                    if path != []:
+                        return (path.pop(), True)
+                return (self.current_pos, True)
         return (self.patrol_search(gridsize, grid_map), False)
 
     #Wipes path and resets the robot to its spawn point (used when falling in a hole)
