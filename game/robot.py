@@ -162,7 +162,6 @@ class Robot:
             
         return self.path.pop()
 
-   
     
     # -----------------
     # CHASE FUNCTIONS
@@ -230,6 +229,10 @@ class Robot:
         if self.state == State.PATROL or self.state == State.SEARCH:
             if Robot.detect_enemy(player_pos, self.current_pos, grid_map):
                 self.state = State.CHASE
+            if self.state == State.PATROL:
+                return (self.patrol_search(gridsize, grid_map), False)
+            elif self.state == State.SEARCH:
+                pass
         if self.state == State.CHASE:
             if self._heuristic(player_pos, self.current_pos) > gridsize[0] // 2:
                 self.state = State.PATROL # to be changed to SEARCH later
@@ -241,7 +244,7 @@ class Robot:
                     if path != []: #Checking if we didnt empty the entire list
                         return (path.pop(), True)
                 return (self.current_pos, True)
-        #Non CHASE STATE conditions below: -> 
+        #Non CHASE STATE conditions below: -> return to default state, PATROL
         return (self.patrol_search(gridsize, grid_map), False)
 
     #Wipes path and resets the robot to its spawn point (used when falling in a hole)
