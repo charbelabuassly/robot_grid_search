@@ -109,9 +109,12 @@ def main():
                     grid_map
                 )
                 if detected:
-                    print("Detection")
+                    pass
                 else:
-                    robot.current_pos = next_pos
+                    if grid_map[next_pos[0], next_pos[1]] == 4: #If the next position will be a hole
+                        robot.reset_after_hole((next_pos[0], next_pos[1]))
+                    else:
+                        robot.current_pos = next_pos #Set new position 
             buildGrid(grid_map, grid_size, screen)
             draw_player(screen, player) #We include this here, in case the user didnt move the player at 
             # a specific iteration to redraw it regardless
