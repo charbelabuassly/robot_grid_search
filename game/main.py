@@ -63,7 +63,7 @@ def main():
     screen = pygame.display.set_mode((WIDTH, HEIGHT)) #Size 
     pygame.display.set_caption("AI Project") #Title
     clock = pygame.time.Clock()
-    robot_move_interval_ms = 600 #only move once every 400 ms
+    robot_move_interval_ms = 500 #only move once every 400 ms
     robot_timer_ms = 0 #counts passed time
     #build grid and player at first frame
     buildGrid(grid_map, grid_size, screen) 

@@ -168,7 +168,6 @@ class Robot:
     # CHASE FUNCTIONS
     # -----------------
     def a_star(self, grid_map, current_pos, target_point):
-        # Basic A* implementation (you can tweak heuristics, costs, and rules)
         height, width = grid_map.shape
         open_set = {current_pos}
         came_from = {}
@@ -236,12 +235,13 @@ class Robot:
                 self.state = State.PATROL # to be changed to SEARCH later
             else:
                 path = self.return_path(player_pos, grid_map)
-                if path != []:
-                    if path[-1] == self.current_pos:
+                if path != []: #We need to do to make sure we never return the current position of the robot, else it will never move
+                    if path[-1] == self.current_pos: #Last Position is the current position
                         path.pop()
-                    if path != []:
+                    if path != []: #Checking if we didnt empty the entire list
                         return (path.pop(), True)
                 return (self.current_pos, True)
+        #Non CHASE STATE conditions below: -> 
         return (self.patrol_search(gridsize, grid_map), False)
 
     #Wipes path and resets the robot to its spawn point (used when falling in a hole)
