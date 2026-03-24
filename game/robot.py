@@ -34,17 +34,17 @@ class Robot:
     # SENSE / DETECTION
     # -----------------
     @staticmethod
-    def detect_enemy(player_pos, robot_pos, grid_map):
-        if not Robot.manhattan_distance(player_pos, robot_pos): #outside of detection range
+    def detect_enemy(player_pos, robot_pos, grid_map, gridsize):
+        if not Robot.manhattan_distance(player_pos, robot_pos, gridsize): #outside of detection range
             return False
         else: #if in detection range, check if blocking obstacle exists
             return Robot.check_blocking(player_pos, robot_pos, grid_map)
 
     # Measure the distacne between 2 points
     @staticmethod
-    def manhattan_distance(player_pos, robot_pos):
+    def manhattan_distance(player_pos, robot_pos, gridsize):
         d = abs(player_pos[0] - robot_pos[0]) + abs(player_pos[1] - robot_pos[1])
-        if d <= 5:
+        if d <= max(5, (gridsize[0] + gridsize[1]) // 8):
             return True
         return False
     
@@ -162,7 +162,6 @@ class Robot:
             
         return self.path.pop()
 
-    
     # -----------------
     # CHASE FUNCTIONS
     # -----------------
@@ -227,7 +226,7 @@ class Robot:
     def decide_next_move(self, player_pos, gridsize, grid_map):
         # Helper chase state
         if self.state == State.PATROL or self.state == State.SEARCH:
-            if Robot.detect_enemy(player_pos, self.current_pos, grid_map):
+            if Robot.detect_enemy(player_pos, self.current_pos, grid_map, gridsize):
                 self.state = State.CHASE
             if self.state == State.PATROL:
                 return (self.patrol_search(gridsize, grid_map), False)

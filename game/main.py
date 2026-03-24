@@ -78,7 +78,7 @@ def main():
     pygame.display.set_caption("level 1") #Title
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     clock = pygame.time.Clock()
-    robot_move_interval_ms = 600 #only move once every 600 ms
+    robot_move_interval_ms = 450 #only move once every 450 ms
     robot_timer_ms = 0 #counts passed time
     #build grid and player at first frame
     buildGrid(grid_map, grid_size, screen) 
