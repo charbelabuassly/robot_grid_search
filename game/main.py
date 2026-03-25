@@ -52,6 +52,22 @@ max_lvl = 6
 pygame.init() #Init
 valid_inputs = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_RETURN] #valid keys 
 
+def load_tile_images():
+    photos_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "photos")
+    images = {}
+    tile_files = {
+        2: "wall.jpeg",
+        3: "quicksand.jpeg",
+        4: "hole.png",
+        5: "gate.png",
+    }
+    for tile, filename in tile_files.items():
+        file_path = os.path.join(photos_dir, filename)
+        if os.path.exists(file_path):
+            img = pygame.image.load(file_path).convert_alpha()
+            images[tile] = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+    return images
+
 def main():
     cur_lvl = 1
     g = Grid(levels[cur_lvl][0], levels[cur_lvl][1]) #Creating Grid object instance
@@ -78,10 +94,11 @@ def main():
     pygame.display.set_caption("level 1") #Title
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     clock = pygame.time.Clock()
+    tile_images = load_tile_images()
     robot_move_interval_ms = 450 #only move once every 450 ms
     robot_timer_ms = 0 #counts passed time
     #build grid and player at first frame
-    buildGrid(grid_map, grid_size, screen) 
+    buildGrid(grid_map, grid_size, screen, tile_images) 
     draw_player(screen, player)
     draw_robots(screen, robots)
     player_moved = False #flag so robots move after player
@@ -116,7 +133,7 @@ def main():
                 continue
             if event.type == pygame.KEYDOWN and event.key in valid_inputs: #If key is pressed, and in the valid key inputs
                 player_moved = True
-                buildGrid(grid_map, grid_size, screen) #rebuild the grid at every new input, it will be drawn over the characters and robots
+                buildGrid(grid_map, grid_size, screen, tile_images) #rebuild the grid at every new input, it will be drawn over the characters and robots
                 if event.key == pygame.K_LEFT:
                     next_move = (player.x - 1, player.y) #moving left
                     #print(COLOR_MAP[int(grid_map[next_move[0],next_move[1]])])
@@ -142,7 +159,7 @@ def main():
                     screen = pygame.display.set_mode((width, height))
                     pygame.display.set_caption(f"level {cur_lvl}")
                     os.environ['SDL_VIDEO_CENTERED'] = '1'
-                    buildGrid(grid_map, grid_size, screen) 
+                    buildGrid(grid_map, grid_size, screen, tile_images) 
                     draw_player(screen, player)
                     draw_robots(screen, robots)
                     player_moved = False
@@ -172,7 +189,7 @@ def main():
                         screen = pygame.display.set_mode((width, height))
                         pygame.display.set_caption(f"level {cur_lvl}")
                         os.environ['SDL_VIDEO_CENTERED'] = '1'
-                        buildGrid(grid_map, grid_size, screen) 
+                        buildGrid(grid_map, grid_size, screen, tile_images) 
                         draw_player(screen, player)
                         draw_robots(screen, robots)
                         player_moved = False
@@ -194,14 +211,16 @@ def main():
                     robot.reset_after_hole((next_pos[0], next_pos[1]))
                 else:
                     robot.current_pos = next_pos #Set new position 
-            buildGrid(grid_map, grid_size, screen)
+            buildGrid(grid_map, grid_size, screen, tile_images)
             draw_player(screen, player) #We include this here, in case the user didnt move the player at 
             # a specific iteration to redraw it regardless
             draw_robots(screen, robots)
         #anything drawn here will be redrawn every frame, which is not necessary for our use case
         pygame.display.update() #Display the grid after building it
 
-def buildGrid(gridArr, grid_size, screen):
+def buildGrid(gridArr, grid_size, screen, tile_images=None):
+    if tile_images is None:
+        tile_images = {}
     for row in range(0,grid_size[0]):
         for col in range(0, grid_size[1]):
             rect = pygame.Rect(col*TILE_SIZE,row*TILE_SIZE,TILE_SIZE, TILE_SIZE) #pygame places the rectangle on the window using
@@ -211,6 +230,8 @@ def buildGrid(gridArr, grid_size, screen):
             #here the origin is bottom left (axis form), where horizontal -> x [LEFT -> RIGHT] and vertical -> Y (DOWN -> UP)
             val = gridArr[col, row] #will be used to determine the color
             pygame.draw.rect(screen, COLOR_MAP[val], rect, 0) # (surface, color, shape, border_width)
+            if val in tile_images:
+                screen.blit(tile_images[val], rect.topleft)
 
 def draw_player(screen, player):
     rect = pygame.Rect(player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
