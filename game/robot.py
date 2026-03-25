@@ -50,32 +50,21 @@ class Robot:
     
     @staticmethod
     def naiveDrawLine(x1, x2, y1, y2, grid_map):
-        height, width = grid_map.shape
-        x, y = x1, y1 #x and y will be used to navigate towards x1 and y1
-        dx = abs(x2 - x1) #Distance between x source and x target
-        dy = abs(y2 - y1) #Distane between y source and y target
-        sx = 1 if x1 < x2 else -1 #This is the step, it is in the x direction. If x source is below the x target, we step in negative direction (up)
-        sy = 1 if y1 < y2 else -1 #This is step, it is in the y direction. If y source is after the y target, then we must go in the negative direction (left)
-        err = dx - dy   #This error will be used to check how much the line has deviated, this error tracks how much we should move in x vs y  to keep the slope correct
+        m = (y2 - y1) / (x2 - x1) #Slope
+        c = y1 - m * x1 #Intercept
 
-        while True:
-            if 0 <= x < height and 0 <= y < width: #If in bounds
-                if grid_map[x, y] in [2, 4]: #if the tile is blocking return False
-                    return False
-                for dx_adj, dy_adj in [(-1, 0), (1, 0), (0, -1), (0, 1)]: #Checking the adjacent ones, if theyre blocked
-                    nx, ny = x + dx_adj, y + dy_adj
-                    if 0 <= nx < height and 0 <= ny < width:
-                        if grid_map[nx, ny] in [2, 4]:
-                            return False
-            if x == x2 and y == y2: #If we reached the tile, break the loop and return true
-                break
-            e2 = 2 * err
-            if e2 > -dy:
-                err -= dy
-                x += sx
-            if e2 < dx:
-                err += dx
-                y += sy
+        x_start = min(x1, x2) #Choosing the smaller x
+        x_end = max(x1, x2) #Choosing the bigger x
+        
+        #This is done in order to move from from smaller to bigger in the loop, else it will break
+
+        height, width = grid_map.shape
+        for x in range(x_start, x_end + 1):
+            y = round(m * x + c)
+            if x < 0 or x >= height or y < 0 or y >= width: #If somehow we are out of bounds
+                continue
+            if grid_map[x, y] in [2, 4]: #If there is a blocing path
+                return False
         return True
 
     
