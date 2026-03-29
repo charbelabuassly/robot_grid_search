@@ -56,8 +56,9 @@ def load_tile_images():
     photos_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "photos")
     images = {}
     tile_files = {
-        2: "wall.jpeg",
-        3: "quicksand.jpeg",
+        1: "path.png",
+        2: "wall.png",
+        3: "quicksand.png",
         4: "hole.png",
         5: "gate.png",
     }
