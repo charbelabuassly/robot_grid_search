@@ -242,6 +242,20 @@ def main():
                 #an enum wouldn't hurt here
                 if next_move is not None:
                     if grid_map[next_move[0],next_move[1]] == 4: #If hole reset the position
+                        lives -= 1
+                        buildGrid(grid_map, grid_size, screen, tile_images)
+                        draw_player(screen, player, entity_images)
+                        draw_robots(screen, robots, entity_images)
+                        draw_lives(screen, lives, width)
+                        pygame.display.update()
+                        if lives < 1:
+                            print("Game Over!")
+                            draw_center_message(screen, "Game Over", width, height)
+                            pygame.display.update()
+                            pygame.time.delay(4000)
+                            pygame.quit()
+                            sys.exit()
+                        reset_robot(robots, player)
                         player.x , player.y = (player_spawn[1], player_spawn[0])
                     elif grid_map[next_move[0],next_move[1]] == 1: #if open path move
                         player.x, player.y = next_move
@@ -307,6 +321,8 @@ def main():
                     pygame.time.delay(4000) 
                     pygame.quit()
                     sys.exit()
+                reset_robot(robots, player)
+                        
                 player.x, player.y = (player_spawn[1], player_spawn[0])
         draw_lives(screen, lives, width)#redraws the hearts according to each loop with the right colors
         #anything drawn here will be redrawn every frame, which is not necessary for our use case
@@ -342,5 +358,12 @@ def draw_robots(screen, robots, entity_images):
             screen.blit(entity_images["robot"], rect.topleft)
         else:
             pygame.draw.rect(screen, MAGENTA, rect, 0)
+
+def reset_robot(robots, player) :
+    for robot in robots:
+            if robot.current_pos == (player.x, player.y):
+                robot.path = []
+                robot.current_pos = robot.spawn_pos
+                robot.last_seen = None
 
 main()
