@@ -21,7 +21,7 @@ class Robot:
     # -----------------
     # HELPER FUNCTIONS
     # -----------------
-    #Chooses the robot's next target
+    #Chooses the robot's next target, it does so randomly
     @staticmethod
     def choose_valid_point(gridsize, grid_map):
         while True:
@@ -49,42 +49,54 @@ class Robot:
         return False
     
     @staticmethod
-    def naiveDrawLine(x1, x2, y1, y2, grid_map):
+    def naiveDrawLine(x1, x2, y1, y2, grid_map): #method used for sight validation across diagonal angles
+        # Calculate slope between two points to determine line direction
         m = (y2 - y1) / (x2 - x1) #Slope
+        # Calculate y-intercept using point-slope form: y = mx + c, rearranged to c = y - mx
+        # We use (x1, y1) as the point, but (x2, y2) would work equally well since both points satisfy the line equation
         c = y1 - m * x1 #Intercept
 
+        # Ensure we iterate from left to right by finding min and max x coordinates (this has the same reasoning as it's parent function)
         x_start = min(x1, x2) #Choosing the smaller x
         x_end = max(x1, x2) #Choosing the bigger x
         
-        #This is done in order to move from from smaller to bigger in the loop, else it will break
-
+        # This ensures iteration goes from smaller to bigger, avoiding issues with iteration direction
         height, width = grid_map.shape
+        # For each x coordinate along the line, check if path is blocked
         for x in range(x_start, x_end + 1):
-            y = round(m * x + c)
+            # Calculate corresponding y coordinate on the line
+            y = round(m * x + c) #we round it in order to actually access the y location with an int
+            # Skip if calculated point is outside grid boundaries
             if x < 0 or x >= height or y < 0 or y >= width: #If somehow we are out of bounds
                 continue
+            # Return False if any blocking tile (wall=2 or hole=4) exists on line of sight
             if grid_map[x, y] in [2, 4]: #If there is a blocing path
                 return False
+        # If no obstacles found along entire line, line of sight is clear
         return True
 
     
     @staticmethod
-    def check_blocking(player_pos, robot_pos, grid_map):
-        #Check if same row px = rx
+    def check_blocking(player_pos, robot_pos, grid_map): #this function uses the view path between the robot and the player to check if something is blocking
+        # Check if player and robot share the same row (x-coordinate)
         if player_pos[0] == robot_pos[0]:
-            arr = grid_map[player_pos[0], min(robot_pos[1],player_pos[1]) : max(robot_pos[1],player_pos[1])]
-            if np.isin(arr,[2 , 4]).sum() == 0:
+            # Extract horizontal line segment between robot and player on the same row
+            arr = grid_map[player_pos[0], min(robot_pos[1],player_pos[1]) : max(robot_pos[1],player_pos[1])] #the reason we do a min and max here is to guarantee that we start from the smallest y to the biggest y
+            # If no blocking tiles (2=wall, 4=hole) found in segment, line of sight is clear
+            if np.isin(arr,[2 , 4]).sum() == 0: #checks if there is any blocking path or not
                 return True
             else:
                 return False
-        #Check if same column, py = ry
+        # Check if player and robot share the same column (y-coordinate)
         elif player_pos[1] == robot_pos[1]:
-            arr = grid_map[min(robot_pos[0],player_pos[0]) : max(robot_pos[0],player_pos[0]), player_pos[1]]
+            # Extract vertical line segment between robot and player on the same column
+            arr = grid_map[min(robot_pos[0],player_pos[0]) : max(robot_pos[0],player_pos[0]), player_pos[1]] #same reason as above
+            # If no blocking tiles (2=wall, 4=hole) found in segment, line of sight is clear
             if np.isin(arr,[2 , 4]).sum() == 0:
                 return True
             else:
                 return False
-        # Diagonal/other case: use naive line-of-sight check
+        # For diagonal or arbitrary angles, use line-drawing algorithm to check line of sight
         return Robot.naiveDrawLine(
             robot_pos[0], player_pos[0],
             robot_pos[1], player_pos[1],
@@ -96,7 +108,7 @@ class Robot:
     # -----------------
     #Uses BFS to create the valid path by validating the target point and its availability
     def create_path_patrol(self, gridsize, grid_map, current_pos):
-        max_attempts = gridsize[0] * gridsize[1]
+        max_attempts = gridsize[0] * gridsize[1] #we have m*n attempts to find a path to a chosen target point that changes on each attempt
         for _ in range(max_attempts):
             target_point = Robot.choose_valid_point(gridsize, grid_map)
             target_path = self.bfs(grid_map, current_pos, target_point)
@@ -111,11 +123,12 @@ class Robot:
         visited = {current_pos}
         came_from = {}
         while queue:
-            cx, cy = queue.popleft()
-            if (cx,cy) == target_point:
-                path_stack = []
-                cur = (cx,cy)
-                path_stack.append(cur)
+            cx, cy = queue.popleft() #dequeue and check if target point
+            if (cx,cy) == target_point: #if we have reached the target point chosen by choose_valid_point
+                path_stack = [] #We start by creating a path stack list that will hold the path stack, traced from the target point back to the
+                #source using the came_from list of dict which we built down
+                cur = (cx,cy) #the current coordinates we are at
+                path_stack.append(cur) #append the source, then get the parent and append its parent then get the grandparent and add it as well, and so on
                 while cur in came_from:
                     cur = came_from[cur]
                     path_stack.append(cur)
@@ -128,22 +141,22 @@ class Robot:
                 tile = grid_map[nx, ny]
                 #Check if passable (normal) or risky (hole)
                 if tile not in Grid.passable: #If it is not passable
-                    if tile == 4: #if it is a tile ->
+                    if tile == 4: #if it is a tile hole ->
                         #If the hole is stored by the robot, skip
                         if (nx,ny) in self.hole_pos:
                             continue
                         elif random.random() < Robot.HOLE_PROBABILITY: #we hit the probability to fall in the hole -> then add it to the path
                             pass
-                    else: #Else we do not add to the path
+                    else: #Else we do not add to the path, since its a none hole blocking
                         continue
                 #We need to check if we are at the goal or not
-                queue.append((nx, ny))
-                visited.add((nx, ny))
-                came_from[(nx, ny)] = (cx, cy)
-        return []
+                queue.append((nx, ny)) #append neighbor if not visited and passable
+                visited.add((nx, ny)) #add it to the visited
+                came_from[(nx, ny)] = (cx, cy) #record who the parent of this added tile is, this will be used to trace the path stack
+        return [] 
 
                 
-    def patrol_search(self, gridsize, grid_map):
+    def patrol_search(self, gridsize, grid_map): #This function is a decider function, it checks whether we already have a path or not,
         #If no path, pick target, try bfs -> if fail retry
         #else we take one step of planned path
         if self.path is None or self.path == []:
@@ -182,6 +195,7 @@ class Robot:
                     continue
                 tile = grid_map[nx, ny]
                 # Passability rule (match bfs behavior)
+                #in other words it checks if the tile is a passable and a hole to inject a probabilistic decision taking
                 if tile not in Grid.passable:
                     if tile == 4:
                         if (nx, ny) in self.hole_pos:
@@ -189,7 +203,7 @@ class Robot:
                         if random.random() >= Robot.HOLE_PROBABILITY:
                             continue
                     else:
-                        continue
+                        continue #else blocked and not a hole
 
                 neighbor = (nx, ny)
                 tentative_g = g_score[current] + 1
@@ -203,36 +217,52 @@ class Robot:
 
     @staticmethod
     def _heuristic(a, b):
-        # Manhattan distance heuristic
+        # Calculate Manhattan distance between two positions (estimated cost to goal)
+        # Used by A* algorithm to guide search toward target point
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
     
-    def return_path(self, player_pos, gridmap):    
+    def return_path(self, player_pos, gridmap):
+        # Execute A* pathfinding from robot's current position to player's position
+        # Returns ordered path stack (list of coordinates) to chase the player
         return self.a_star(gridmap,self.current_pos, player_pos)
         
     # ------------------------
     # GLOBAL DECIDER FUNCTION
     # ------------------------
     def decide_next_move(self, player_pos, gridsize, grid_map):
-        # Helper chase state
+        # Check if robot is in PATROL or SEARCH states (passive states)
         if self.state == State.PATROL or self.state == State.SEARCH:
+            # If player detected (line of sight exists and within detection range), transition to CHASE
             if Robot.detect_enemy(player_pos, self.current_pos, grid_map, gridsize):
                 self.state = State.CHASE
+            # If still in PATROL state, continue patrolling with pre-planned path
             if self.state == State.PATROL:
-                return (self.patrol_search(gridsize, grid_map), False)
+                return (self.patrol_search(gridsize, grid_map), False) #will check if we already have a path stack for the patrol bfs
+                #if yes then pops whatever is in the path, or creates a new one using the patrol search functions
+            # If in SEARCH state (placeholder for future implementation)
             elif self.state == State.SEARCH:
                 pass
+        # If in active CHASE state, pursue the player
         if self.state == State.CHASE:
+            # If player distance exceeds half the grid size, lose track and return to PATROL
             if self._heuristic(player_pos, self.current_pos) > gridsize[0] // 2:
                 self.state = State.PATROL # to be changed to SEARCH later
             else:
+                # Execute A* pathfinding to generate chase path toward player
                 path = self.return_path(player_pos, grid_map)
+                # Ensure path exists and is not empty
                 if path != []: #We need to do to make sure we never return the current position of the robot, else it will never move
+                    # Remove current position from path if it's at the end (shouldn't move to current position)
                     if path[-1] == self.current_pos: #Last Position is the current position
-                        path.pop()
+                        path.pop() #returns the end positionm and since a_star returns a stack from [player_pos -> robot_pos] then obviously we need to remove the last robot_pos or 
+                        #it will be returned everytime causing the robot to not move
+                    # After cleanup, verify path still has moves available
                     if path != []: #Checking if we didnt empty the entire list
+                        # Return next move in path, flag as True indicates active chase
                         return (path.pop(), True)
+                # If path is empty, stay in place during chase
                 return (self.current_pos, True)
-        #Non CHASE STATE conditions below: -> return to default state, PATROL
+        # Default fallback: if not in CHASE state, return to PATROL with planned path movement
         return (self.patrol_search(gridsize, grid_map), False)
 
     #Wipes path and resets the robot to its spawn point (used when falling in a hole)
