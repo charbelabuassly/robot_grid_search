@@ -139,5 +139,3 @@ This project isn’t just a game — it’s a **practical AI system** combining:
 
 ---
 
-* Add a **demo section with gameplay screenshots**
-* Or tailor it for **recruiters / portfolio use**
